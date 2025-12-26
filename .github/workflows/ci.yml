@@ -1,0 +1,53 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  flutter-ci:
+    name: Flutter CI
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: latest
+          channel: stable
+
+      # Step 3: Install FVM
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm
+          fvm install
+          fvm use
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: fvm flutter pub get
+
+      # Step 5: Run code generation
+      - name: Run code generation
+        run: fvm dart run build_runner build --delete-conflicting-outputs
+
+      # Step 6: Check formatting
+      - name: Check formatting
+        run: fvm dart format --output=none --set-exit-if-changed .
+
+      # Step 7: Analyze the code
+      - name: Analyze code
+        run: fvm flutter analyze
+
+      # Step 8: Run unit tests
+      - name: Run unit tests
+        run: fvm flutter test --no-pub

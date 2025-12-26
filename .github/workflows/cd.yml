@@ -1,0 +1,45 @@
+name: Flutter CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-upload:
+    name: Build and Upload APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: latest
+          channel: stable
+
+      # Step 3: Install FVM
+      - name: Install FVM
+        run: |
+          dart pub global activate fvm
+          fvm install
+          fvm use
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: fvm flutter pub get
+
+      # Step 5: Build APK
+      - name: Build APK
+        run: fvm flutter build apk --release
+
+      # Step 6: Upload APK as an artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
